@@ -31,6 +31,17 @@ module "vpc" {
 }
 
 #
+# Create the IGW
+#
+resource "aws_internet_gateway" "single-nic-bigip" {
+  vpc_id                = module.vpc.vpc_id
+  tags = {
+    Name = "single-nic-bigip"
+  }
+}
+
+
+#
 # Create the Route Table
 #
 resource "aws_route_table" "single-nic-bigip-table" {
@@ -50,7 +61,7 @@ resource "aws_route_table" "single-nic-bigip-table" {
 #
 resource "aws_route_table_association" "single-nic-bigip" {
   subnet_id             = "${aws_subnet.mgmt.id}" 
-  route_table_id        = "${aws_route_table.single-nic-bigip.id}"
+  route_table_id        = "${aws_route_table.single-nic-bigip-table.id}"
 }
 
 #
@@ -58,18 +69,10 @@ resource "aws_route_table_association" "single-nic-bigip" {
 #
 resource "aws_main_route_table_association" "single-nic-bigip-table-association" {
   vpc_id                = module.vpc.vpc_id
-  route_table_id        = "${aws_route_table.single-nic-bigip.id}"
+  route_table_id        = "${aws_route_table.single-nic-bigip-table.id}"
 }
 
-#
-# Create the IGW
-#
-resource "aws_internet_gateway" "single-nic-bigip" {
-  vpc_id                = module.vpc.vpc_id
-  tags = {
-    Name = "single-nic-bigip"
-  }
-}
+
 
 #
 # Create Ephemeral EIP for BIGIP
@@ -135,7 +138,7 @@ resource "aws_subnet" "mgmt" {
 #
 # Create MGMT Network Interface for BIG-IP
 #
-resource "aws_network_interface" "single-nic-bigip-mgmt" {
+resource "aws_network_interface" "single-nic-bigip" {
   private_ips           = ["10.0.1.150"]
   source_dest_check     = "false"
   subnet_id             = "${aws_subnet.mgmt.id}"
@@ -159,9 +162,10 @@ resource "aws_instance" "bigip" {
     Name = "single-nic-bigip"
   }
   network_interface {
-    network_interface_id      = "${aws_network_interface.single-nic-bigip-mgmt.id}"
+    network_interface_id      = "${aws_network_interface.single-nic-bigip.id}"
     device_index              = 0
   }
+}
 
 #############
 # Variables #
