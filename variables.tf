@@ -31,5 +31,5 @@ variable "az" {
 variable "awaf_ami" {
   description = "PAYG F5 AWAF 1GIG"
   type        = string
-  default     = "ami-0c83f27f3b93e10f9"
+  default     = "ami-0415c5b07fac379da"
 }
